@@ -1,0 +1,143 @@
+1)Создать двух пользователей (с помощью метода User.objects.create_user).
+
+>>>from news.models import*
+>>>user1 = User.objects.create_user('Ivan')
+>>>user2 = User.objects.create_user('Maria')
+
+2)Создать два объекта модели Author, связанные с пользователями.
+
+>>> Author.objects.create(authorUser= user1)
+<Author: Author object (1)>
+>>> Author.objects.create(authorUser=user2)
+<Author: Author object (2)>
+
+3)Добавить 4 категории в модель Category.
+
+>>> Category.objects.create(name = 'IT')
+<Category: Category object (1)>
+>>> Category.objects.create(name = 'sport')
+<Category: Category object (2)>
+>>> Category.objects.create(name = 'education')
+<Category: Category object (3)>
+>>> Category.objects.create(name = 'politics')
+<Category: Category object (4)>
+
+4)Добавить 2 статьи и 1 новость.
+
+Post.objects.create(author=author, categoryType="NW", title="Title_I", text="Text_I") 
+<Post: Post object (1)>
+>>> Post.objects.create(author=author, categoryType="AR", title="Title_article_I", text="Text_article_I") 
+<Post: Post object (2)>
+>>> Post.objects.create(author=author, categoryType="AR", title="Title_article_II", text="Text_article_II") 
+<Post: Post object (3)>
+
+5)Присвоить им категории (как минимум в одной статье/новости должно быть не меньше 2 категорий).
+
+>>> Post.objects.get(id=1).postCategory.add(Category.objects.get(id=1))
+>>> Post.objects.get(id=1).postCategory.add(Category.objects.get(id=4))
+
+6)Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть как минимум один комментарий).
+
+>>> Comment.objects.create(commentPost=Post.objects.get(id=1), commentUser=Author.objects.get(id=1).authorUser, text="anyText")
+<Comment: Comment object (1)>
+>>> Comment.objects.create(commentPost=Post.objects.get(id=2), commentUser=Author.objects.get(id=1).authorUser, text="anyText")
+<Comment: Comment object (2)>
+>>> Comment.objects.create(commentPost=Post.objects.get(id=3), commentUser=Author.objects.get(id=2).authorUser, text="anyText")
+<Comment: Comment object (3)>
+>>> Comment.objects.create(commentPost=Post.objects.get(id=4), commentUser=Author.objects.get(id=2).authorUser, text="anyText")
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "/home/jean-cyr/.local/lib/python3.10/site-packages/django/db/models/manager.py", line 85, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/jean-cyr/.local/lib/python3.10/site-packages/django/db/models/query.py", line 650, in get
+    raise self.model.DoesNotExist(
+news.models.Post.DoesNotExist: Post matching query does not exist.
+>>> Comment.objects.create(commentPost=Post.objects.get(id=1), commentUser=Author.objects.get(id=2).authorUser, text="anyText")
+<Comment: Comment object (4)>
+
+
+7)Применяя функции like() и dislike() к статьям/новостям и комментариям, скорректировать рейтинги этих объектов.
+
+>>> Comment.objects.get(id=1).like()
+>>> Comment.objects.get(id=3).like()
+>>> Comment.objects.get(id=3).like()
+>>> Comment.objects.get(id=2).dislike()
+>>> Comment.objects.get(id=2).dislike()
+>>> Comment.objects.get(id=2).dislike()
+>>> Post.objects.get(id=1).dislike()
+>>> Post.objects.get(id=2).like()
+>>> Post.objects.get(id=3).like()
+>>> Post.objects.get(id=4).like()
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "/home/jean-cyr/.local/lib/python3.10/site-packages/django/db/models/manager.py", line 85, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/jean-cyr/.local/lib/python3.10/site-packages/django/db/models/query.py", line 650, in get
+    raise self.model.DoesNotExist(
+news.models.Post.DoesNotExist: Post matching query does not exist.
+
+
+8)Обновить рейтинги пользователей.
+
+>>> Author.objects.get(id=1)
+<Author: Author object (1)>
+>>> Author.objects.get(id=1).update_rating()
+>>> a = Author.objects.get(id=1)
+>>> a.update_rating()
+>>> Post.objects.get(id=1)
+<Post: Post object (1)>
+>>> p = Post.objects.get(id=1)
+>>> p.update_rating()
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+AttributeError: 'Post' object has no attribute 'update_rating'
+>>> a.update_rating()
+>>> a.ratingAuthor
+1
+>>> a2 = Author.objects.get(id=2)
+>>> a2.update_rating()
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "/home/jan/prog/sf/full/d2/prj/NewsPaper/news/models.py", line 14, in update_rating
+    pRat += postRat.get("postRating")
+TypeError: unsupported operand type(s) for +=: 'int' and 'NoneType'
+>>> a.ratingAuthor
+1
+>>> a2.ratingAuthor
+0
+
+
+9)Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта).
+
+a = Author.objects.order_by("-ratingAuthor")[:1]
+
+>>> for i in a:
+...     i.ratingAuthor
+...     i.authorUser.username
+... 
+1
+'Ivan'
+
+10)Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках к этой статье.
+
+p = Post.objects.order_by("-rating")
+
+>>>for i in p[:1]:
+     i.dateCreation
+     i.author
+     i.rating
+     i.title
+     i.preview()
+ 
+datetime.datetime(2023, 3, 15, 19, 15, 0, 860814, tzinfo=datetime.timezone.utc)
+<Author: Author object (1)>
+1
+'Title_article_I'
+'Text_article_I...'
+
+11)Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье.
+
+>>> Post.objects.all().order_by('-rating')[0].comment_set.values('dateCreation', 'commentUser', 'rating', 'text')
+<QuerySet [{'dateCreation': datetime.datetime(2023, 3, 15, 19, 20, 41, 400151, tzinfo=datetime.timezone.utc), 'commentUser': 1, 'rating': -3, 'text': 'anyText'}]>
+
+
